@@ -25,6 +25,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.swing.JFileChooser;
 
 public class Crypt {
 
@@ -58,13 +59,23 @@ public class Crypt {
 		
 	}
 	
-	public void Encrypt(String path) 
+	public void Encrypt(String filename,String path,String dir) 
 	{
 
+		filename = filename.substring(0,filename.indexOf('.'));
+
+		
+		System.err.println("filename "+filename);
+		System.err.println(path);
+		System.err.println(dir);
+		
+		
+		
 		// file to be encrypted
 		FileInputStream inFile = null;
 		try {
-			inFile = new FileInputStream("file1.txt");
+			System.out.println("Encrypting...");
+			inFile = new FileInputStream(path);
 			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -74,7 +85,8 @@ public class Crypt {
 		// encrypted file
 		FileOutputStream outFile = null;
 		try {
-			outFile = new FileOutputStream("defile1.des");
+			outFile = new FileOutputStream(dir+"\\"+filename+".des");
+			System.out.println(dir+"\\"+filename+".des");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -95,7 +107,8 @@ public class Crypt {
 		secureRandom.nextBytes(salt);
 		FileOutputStream saltOutFile;
 		try {
-			saltOutFile = new FileOutputStream("salt.enc");
+			saltOutFile = new FileOutputStream(dir+"\\"+filename+".enc");
+			System.out.println(dir+"salt.enc");
 			saltOutFile.write(salt);
 			saltOutFile.close();
 		} catch (IOException e) {
@@ -123,7 +136,7 @@ public class Crypt {
 			// secure
 			// used while initializing the cipher
 			// file to store the iv
-			FileOutputStream ivOutFile = new FileOutputStream("iv.enc");
+			FileOutputStream ivOutFile = new FileOutputStream(dir+"\\"+filename+"_iv.enc");
 			byte[] iv = params.getParameterSpec(IvParameterSpec.class).getIV();
 			ivOutFile.write(iv);
 			ivOutFile.close();
@@ -179,8 +192,16 @@ public class Crypt {
 		System.out.println("File Encrypted.");
 	}
 	
-	public void Decrypt(String path){
+	public void Decrypt(String path,String filename,String dir){
 
+		
+		filename = filename.substring(0,filename.indexOf('.'));
+		
+		System.err.println("name: "+filename);
+		System.err.println("path: "+path);
+		System.err.println("dir: "+dir);
+		
+		
 		String password = "javapapers";
 
 		// reading the salt
@@ -188,12 +209,12 @@ public class Crypt {
 		// salt, iv and password to the recipient
 		FileInputStream saltFis;
 		try {
-			saltFis = new FileInputStream("salt.enc");
+			saltFis = new FileInputStream(filename+".enc");
 			byte[] salt = new byte[8];
 			saltFis.read(salt);
 			saltFis.close();
 			// reading the iv
-			FileInputStream ivFis = new FileInputStream("iv.enc");
+			FileInputStream ivFis = new FileInputStream(filename+"_iv.enc");
 			byte[] iv = new byte[16];
 			ivFis.read(iv);
 			ivFis.close();
@@ -208,8 +229,9 @@ public class Crypt {
 			// file decryption
 			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 			cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(iv));
-			FileInputStream fis = new FileInputStream(path+".des");
-			FileOutputStream fos = new FileOutputStream("plainfile_decrypted.txt");
+			System.out.println("path: "+path);
+			FileInputStream fis = new FileInputStream(filename+".des");
+			FileOutputStream fos = new FileOutputStream(filename+"_decrypted");
 			byte[] in = new byte[64];
 			int read;
 			while ((read = fis.read(in)) != -1) {
@@ -261,6 +283,35 @@ public class Crypt {
 		
 	}
 	
+	public String chooseFolder() {
+		String path = null;
+		
+		JFileChooser f = new JFileChooser();
+		f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		int result = f.showSaveDialog(null);
+		
+		System.out.println(f.getSelectedFile());
+
+		switch (result) {
+		case JFileChooser.APPROVE_OPTION:
+			System.out.println("Approve (Open or Save) was clicked");
+			path = f.getSelectedFile().toString();
+			return path;
+		case JFileChooser.CANCEL_OPTION:
+			System.out.println("Cancel or the close-dialog icon was clicked");
+
+			path = "";
+			break;
+		case JFileChooser.ERROR_OPTION:
+			System.out.println("Error");
+
+			path = "";
+			break;
+		}
+		return path;
+		
+		
+	}
 	
 }
 
